@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using Newtonsoft.Json;
 
 //The unicode for a full square is "\u2588"
@@ -10,88 +11,114 @@ namespace Learn_test
     class Program
     {
         public static string worldsDir = "C:\\Worlds";
-
-        private static Dictionary<char, Definition> definitions = new Dictionary<char, Definition>()
-        {
-            {'#', new Definition("tile", new Tile('\u2588', Tile.TileType.Wall))},
-            {'p', new Definition("agent", new Agent(Vector2.Zero))},
-            {'g', new Definition("tile", new Tile('\u2588', Tile.TileType.Goal, ConsoleColor.Green))}
-        };
+        private static Simulation currentSimulation;
 
         static void Main(string[] args)
         {
+            SuperConsole.KeyActions.Add(ConsoleKey.Escape, EscPressed);
 
-            Debug.WriteLine(JsonConvert.SerializeObject(definitions, Formatting.Indented));
-
+            //Setup
             WindowUtility.DisableResize();
             Console.ForegroundColor = ConsoleColor.White;
             Directory.CreateDirectory(worldsDir);
             DirectoryInfo dirInfo = new DirectoryInfo(worldsDir);
-            FileInfo[] files = dirInfo.GetFiles();
+            DirectoryInfo[] directories = dirInfo.GetDirectories();
 
-            if(files.Length == 0)
+            if(directories.Length == 0)
             {
                 Console.WriteLine("No worlds");
-                Console.ReadLine();
+                SuperConsole.ReadKey(true);
                 return;
             }
-            
-            string world = "";
+
+            //Loads the worlds
             string errorMessage = "";
+            List<WorldData> worlds = new List<WorldData>();
+            foreach(DirectoryInfo dir in directories)
+            {
+                try
+                {
+                    worlds.Add(new WorldData(dir.FullName));
+                }
+                catch(Exception e)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine(e.Message);
+                    Console.ForegroundColor = ConsoleColor.White;
+                }
+
+            }
+
             bool exit = false;
             while(!exit)
             {
+                currentSimulation = null;
+
+                //Adjusts window
+                Console.CursorVisible = true;
+                Console.WindowTop = 0;
+                Console.SetWindowSize(120, 30);
+                Console.SetBufferSize(Console.WindowWidth, Console.WindowHeight);
+                WindowUtility.MoveWindowToCenter();
+
                 Console.Clear();
 
-                //Displays the worlds
-                for(int i = 0; i < files.Length; i++)
+                WorldData world = GetUserChoice(worlds.ToArray(), "Choose a world");
+                currentSimulation = new Simulation(world);
+                currentSimulation.Run();
+            }
+        }
+
+        private static void EscPressed(ConsoleKey key)
+        {
+            if(currentSimulation != null) currentSimulation.End();
+            else Environment.Exit(0);
+        }
+
+        private static T GetUserChoice<T>(T[] values, string topMessage = "Choose an option:")
+        {
+            bool chose = false;
+            string errorMessage = "";
+            while(!chose)
+            {
+                Console.Clear();
+                Console.ForegroundColor = ConsoleColor.White;
+
+                int i = 0;
+                foreach(T value in values)
                 {
-                    Console.WriteLine(i+".- " + files[i].Name);
+                    Console.WriteLine(i+".- " + value.ToString());
+                    i++;
                 }
 
                 Console.WriteLine();
 
-                //Displays error message
                 if(errorMessage != "")
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine(errorMessage);
-                    Console.ForegroundColor = ConsoleColor.White;
-
-                    errorMessage = "";
                 }
 
-                Console.WriteLine("Select a world:");
-                string answer = Console.ReadLine();
-                if(answer == "exit") break;
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.WriteLine(topMessage);
+                string answer = SuperConsole.ReadLine();
 
                 if(Int32.TryParse(answer, out int index))
                 {
-                    if(index < 0 || index >= files.Length)
+                    if(index >= values.Length || index < 0)
                     {
-                        errorMessage = "Number too big/small";
+                        errorMessage = "Item not in list";
                         continue;
                     }
-                    FileInfo file = files[index];
-                    world = File.ReadAllText(file.FullName);
-
-                    //Run simulation
-                    Simulation s = new Simulation(world);
-                    try
+                    else
                     {
-                        s.Run();
+                        chose = true;
+                        return values[index];
                     }
-                    catch(Exception e)
-                    {
-                        errorMessage = e.Message;
-                    }
-
                 }
-                else
-                {
-                    errorMessage = "Please input a number";
-                }
+                else errorMessage = "Please enter a number";
             }
+            return default(T);
         }
     }
 }

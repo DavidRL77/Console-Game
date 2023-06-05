@@ -1,21 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Learn_test
 {
-    public class Agent
+    public class Entity
     {
-        public Vector2 position { get; private set; }
-        private Vector2 prevPos;
-        private Vector2 defaultPosition;
+        public bool StorePositions = true;
 
-        public Agent(Vector2 position)
+        public Vector2 position { get; protected set; }
+        protected Vector2 prevPos;
+        public List<Vector2> positions = new List<Vector2>();
+
+        public char display { get; protected set; } = '#';
+        public ConsoleColor color { get; protected set; }
+
+        public Entity(Vector2 position, char display, ConsoleColor color)
         {
             this.position = position;
             prevPos = position;
-            defaultPosition = position;
-            Update();
+            this.display = display;
+            this.color = color;
         }
 
         /// <summary>
@@ -50,32 +54,33 @@ namespace Learn_test
             return SetPosition(position + move);
         }
 
-        public void Update()
+        public virtual void Simulate(Simulation simulation)
         {
-            Console.SetCursorPosition(position.x, position.y);
-            Console.Write("#");
 
+        }
+
+        public virtual void Draw()
+        {
+            ConsoleColor prevColor = Console.ForegroundColor;
+
+            Console.ForegroundColor = color;
+            Console.SetCursorPosition(position.x, position.y);
+            Console.Write(display);
+            if(StorePositions) positions.Add(position);
 
             if(!prevPos.Equals(position))
             {
-                ConsoleColor prevColor = Console.ForegroundColor;
-
                 //Clears the previous character position
                 ColoredChar coloredChar = SuperConsole.GetCharAt(prevPos);
                 Console.SetCursorPosition(prevPos.x, prevPos.y);
                 Console.ForegroundColor = coloredChar.color;
                 Console.Write(coloredChar.character);
 
-                Console.ForegroundColor = prevColor;
             }
             Console.SetCursorPosition(position.x, position.y);
             prevPos = position;
-        }
+            Console.ForegroundColor = prevColor;
 
-        public void Reset()
-        {
-            position = defaultPosition;
-            Update();
         }
     }
 }

@@ -49,24 +49,30 @@ namespace Learn_test
         /// <summary>
         /// 0,1
         /// </summary>
-        public static readonly Vector2 Right = new Vector2(0, 1);
+        public static readonly Vector2 Right = new Vector2(1, 0);
         /// <summary>
         /// 0,-1
         /// </summary>
-        public static readonly Vector2 Left = new Vector2(0, -1);
+        public static readonly Vector2 Left = new Vector2(-1, 0);
         /// <summary>
         /// 1,0
         /// </summary>
-        public static readonly Vector2 Up = new Vector2(1, 0);
+        public static readonly Vector2 Up = new Vector2(0, -1);
         /// <summary>
         /// -1,0
         /// </summary>
-        public static readonly Vector2 Down = new Vector2(-1, 0);
+        public static readonly Vector2 Down = new Vector2(0, 1);
 
         public static Vector2 operator +(Vector2 a, Vector2 b)
         {
             return new Vector2(a.x + b.x, a.y + b.y);
         }
+
+        public static Vector2 operator -(Vector2 a)
+        {
+            return new Vector2(-a.x, -a.y);
+        }
+
         public static Vector2 operator -(Vector2 a, Vector2 b)
         {
             return new Vector2(a.x - b.x, a.y - b.y);

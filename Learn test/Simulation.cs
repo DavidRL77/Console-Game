@@ -6,210 +6,150 @@ using System.Threading;
 
 namespace Learn_test
 {
-    class Simulation
+    public class Simulation
     {
-        private Agent agent;
-        private Random rnd = new Random();
-        private int time;
-        public int iterations;
-        private Tile[,] tiles;
-        private List<Vector2> positions = new List<Vector2>();
-        private Dictionary<char, string> definitions = new Dictionary<char, string>()
-        {
-            {'#', "tiles:wall"},
-            {'p', ""},
-            {'g', new Definition("tile", new Tile('\u2588', Tile.TileType.Goal, ConsoleColor.Green))}
-        };
+       public WorldData WorldData { get; private set; }
 
+        public int Time { get; private set; }
+
+        public Random rnd { get; private set; } = new Random();
         private bool running;
+        private bool tilesChanged = true;
 
-        public Simulation(string fileContents)
+        private long lastTime = 0;
+
+        public Simulation(WorldData worldData)
         {
             Extraction e = new Extraction();
-
-            //Sets shit up
-            iterations = 0;
+            Time = 0;
             Console.CursorVisible = false;
-
-
-            string[] splitFileContents = fileContents.Split('{');
-            string world = splitFileContents[0];
-            string definitionsJson = splitFileContents.Length > 1 ? splitFileContents[1] : null;
-            
-
-            string[] splitWorld = world.Split("\n");
-
-            string longest = Utils.GetLongestString(splitWorld);
-            if(longest.Length > Console.BufferWidth || splitWorld.Length > Console.BufferHeight)
-            {
-                throw new Exception("World is too big");
-            }
-
-            tiles = new Tile[Utils.GetLongestString(splitWorld).Length, splitWorld.Length];
-            tiles.Populate(new Tile(' ', Tile.TileType.Empty));
-
-            //Loops through the text file
-            for(int y = 0; y < splitWorld.Length; y++)
-            {
-                string line = splitWorld[y].Trim();
-
-                for(int x = 0; x < line.Length; x++)
-                {
-                    char c = line[x];
-
-                    switch(c)
-                    {
-                        case 'p':
-                            agent = new Agent(new Vector2(x, y));
-                            break;
-                        case '#':
-                            tiles[x, y] = new Tile('\u2588', Tile.TileType.Wall);
-                            break;
-                        case 'g':
-                            tiles[x, y] = new Tile('\u2588', Tile.TileType.Goal, ConsoleColor.Green);
-                            break;
-                        default:
-                            tiles[x, y] = new Tile(' ', Tile.TileType.Empty);
-                            break;
-                    }
-                }
-
-            }
-
-            Draw();
-            WindowUtility.MoveWindowToCenter();
+            WorldData = worldData;
         }
 
         public void Draw()
         {
-            Console.SetWindowSize(Math.Max(tiles.GetLength(0), 15), tiles.GetLength(1)+1);
-            Console.SetBufferSize(Console.WindowWidth, Console.WindowHeight);
-            SuperConsole.ResetBuffer();
-            Console.Clear();
+            Console.SetWindowSize(Math.Max(WorldData.WorldWidth, 15), WorldData.WorldHeight+1);
+            Console.SetBufferSize(Console.WindowWidth, WorldData.WorldHeight + 10);
 
             //Draws the tiles
-            for(int y = 0; y < tiles.GetLength(1); y++)
+            if(tilesChanged)
             {
-                for(int x = 0; x < tiles.GetLength(0); x++)
+                SuperConsole.ResetBuffer();
+                Console.Clear();
+                for(int y = 0; y < WorldData.Tiles.GetLength(1); y++)
                 {
-                    Tile tile = tiles[x, y];
-                    SuperConsole.WriteAt(tile.displayChar, x, y, tile.tileColor);
+                    for(int x = 0; x < WorldData.Tiles.GetLength(0); x++)
+                    {
+                        Tile tile = WorldData.Tiles[x, y];
+                        SuperConsole.WriteAt(tile.displayChar, x, y, tile.tileColor);
+                    }
+
                 }
-
+                tilesChanged = false;
             }
-            agent?.Update();
 
-            Console.SetCursorPosition(0, Console.WindowHeight - 1);
-            Console.Write("Time: " + time);
+            DrawEntities();
+
+            Console.SetCursorPosition(0, WorldData.Tiles.GetLength(1));
+            Console.Write("Time: " + Time);
+        }
+
+        private void DrawEntities()
+        {
+            for(int i = 0; i < WorldData.Entities.Count; i++)
+            {
+                WorldData.Entities[i].Draw();
+            }
+        }
+
+        private void SimulateEntities()
+        {
+            for(int i = 0; i < WorldData.Entities.Count; i++)
+            {
+                WorldData.Entities[i].Simulate(this);
+            }
         }
 
         public void Run()
         {
-            if(agent == null)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.SetCursorPosition(0, 0);
-                Console.WriteLine("No agent");
-                Console.ReadLine();
-                return;
-            }
             Console.ResetColor();
+
+            Draw();
+            WindowUtility.MoveWindowToCenter();
 
             #region Movement
             running = true;
             while(running)
             {
-
-                Console.SetCursorPosition(0,Console.WindowHeight-1);
-                Console.Write("Time: " + time);
-
-                positions.Add(agent.position);
-                int x = 0;
-                int y = 0;
-
-                ConsoleKeyInfo key = Console.ReadKey();
-
-                if(key.Key == ConsoleKey.UpArrow) y = -1;
-                else if(key.Key == ConsoleKey.DownArrow) y = 1;
-                else if(key.Key == ConsoleKey.LeftArrow) x = -1;
-                else if(key.Key == ConsoleKey.RightArrow) x = 1;
-
-                //When the agent moves into a wall
-                if(agent.Move(x,y) && !IsValidPosition(agent.position.x, agent.position.y))
+                long currentTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                long difference = currentTime - lastTime;
+                if(difference < 100)
                 {
-                    Debug.WriteLine("Invalid pos");
-                    agent.Move(-x, -y);
+                    Thread.Sleep(100 - (int)difference);
                 }
+                lastTime = currentTime;
 
-                agent.Update();
-                time++;
-
-                if(tiles[agent.position.x, agent.position.y].tileType == Tile.TileType.Goal)
-                {
-                    End();
-                }
+                SimulateEntities();
+                Draw();
+                Time++;
             }
             #endregion
-
-            #region AI
-            //for(int i = 0; i < goals.Length; i++)
-            //{
-            //    Console.SetCursorPosition(0, 0);
-            //    Console.Write(i);
-
-            //    //Gets the closest goal
-            //    Vector2 goal = goals.Where(g => g != null).OrderBy(g => (agent.position - g).magnitude).First();
-
-            //    Vector2 distance = goal - agent.position;
-            //    int signX = Math.Sign(distance.x);
-            //    int signY = Math.Sign(distance.y);
-
-            //    for(int x = 0; x < Math.Abs(distance.x); x++)
-            //    {
-            //        agent.Move(1 * signX, 0);
-            //        agent.Update();
-            //        Thread.Sleep(100);
-            //    }
-
-            //    for(int y = 0; y < Math.Abs(distance.y); y++)
-            //    {
-            //        agent.Move(0, 1 * signY);
-            //        agent.Update();
-            //        Thread.Sleep(100);
-            //    }
-
-            //    goals[Array.IndexOf(goals, goal)] = null;
-            //    //Thread.Sleep(500);
-            //}
-            #endregion
-
         }
 
         public void End()
         {
             running = false;
-            ReplaySteps();
-            Console.Clear();
-            Console.WriteLine("You win!");
-            Console.ReadLine();
         }
 
-        private void ReplaySteps()
+        public void Win()
         {
-            Draw();
-            for(int i = 0; i < positions.Count; i++)
-            {
-                agent.SetPosition(positions[i]);
-                agent.Update();
-                Thread.Sleep(100);
+            Replay();
+            if(!running) return;
+            Console.Clear();
+            Console.WriteLine("You win!");
+            SuperConsole.ReadKeyInstant(true);
+            running = false;
+        }
 
+        private void Replay()
+        {
+            SuperConsole.StartBackgroundRead();
+            for(int i = 0; i < WorldData.Entities.Count; i++)
+            {
+                Entity entity = WorldData.Entities[i];
+                entity.StorePositions = false;
+                for(int j = 0; j < entity.positions.Count; j++)
+                {
+                    if(!running) break;
+                    entity.SetPosition(entity.positions[j]);
+                    entity.Draw();
+                    Thread.Sleep(100);
+                }
+                Draw();
             }
+            SuperConsole.EndBackgroundRead();
+        }
+
+        public bool IsValidPosition(Vector2 pos)
+        {
+            return IsValidPosition(pos.x, pos.y);
         }
 
         public bool IsValidPosition(int x, int y)
         {
-            if(x > Console.WindowWidth || x < 0 || y > Console.WindowHeight || y < 0 || tiles[x,y].tileType == Tile.TileType.Wall) return false;
+            if(GetTileAt(x,y) == null || GetTileAt(x,y).tileType == Tile.TileType.Wall) return false;
             else return true;
+        }
+
+        public Tile GetTileAt(Vector2 pos)
+        {
+            return GetTileAt(pos.x, pos.y);
+        }
+
+        public Tile GetTileAt(int x, int y)
+        {
+            if(x < 0 || x > WorldData.WorldWidth-1 || y < 0 || y > WorldData.WorldHeight-1) return null;
+            return WorldData.Tiles[x, y];
         }
     }
 }
