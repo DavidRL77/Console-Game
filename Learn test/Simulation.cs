@@ -14,8 +14,6 @@ namespace Learn_test
 
         public Random rnd { get; private set; } = new Random();
         private bool running;
-        private bool tilesChanged = true;
-
         private long lastTime = 0;
 
         public Simulation(WorldData worldData)
@@ -32,7 +30,7 @@ namespace Learn_test
             Console.SetBufferSize(Console.WindowWidth, WorldData.WorldHeight + 10);
 
             //Draws the tiles
-            if(tilesChanged)
+            if(WorldData.TilesChanged)
             {
                 SuperConsole.ResetBuffer();
                 Console.Clear();
@@ -45,13 +43,21 @@ namespace Learn_test
                     }
 
                 }
-                tilesChanged = false;
+                WorldData.TilesChanged = false;
             }
 
             DrawEntities();
 
             Console.SetCursorPosition(0, WorldData.Tiles.GetLength(1));
             Console.Write("Time: " + Time);
+        }
+
+        private void InitializeEntities()
+        {
+            for(int i = 0; i < WorldData.Entities.Count; i++)
+            {
+                WorldData.Entities[i].Awake(this);
+            }
         }
 
         private void DrawEntities()
@@ -73,6 +79,7 @@ namespace Learn_test
         public void Run()
         {
             Console.ResetColor();
+            InitializeEntities();
 
             Draw();
             WindowUtility.MoveWindowToCenter();
@@ -103,31 +110,10 @@ namespace Learn_test
 
         public void Win()
         {
-            Replay();
-            if(!running) return;
             Console.Clear();
             Console.WriteLine("You win!");
             SuperConsole.ReadKeyInstant(true);
             running = false;
-        }
-
-        private void Replay()
-        {
-            SuperConsole.StartBackgroundRead();
-            for(int i = 0; i < WorldData.Entities.Count; i++)
-            {
-                Entity entity = WorldData.Entities[i];
-                entity.StorePositions = false;
-                for(int j = 0; j < entity.positions.Count; j++)
-                {
-                    if(!running) break;
-                    entity.SetPosition(entity.positions[j]);
-                    entity.Draw();
-                    Thread.Sleep(100);
-                }
-                Draw();
-            }
-            SuperConsole.EndBackgroundRead();
         }
 
         public bool IsValidPosition(Vector2 pos)
@@ -137,19 +123,18 @@ namespace Learn_test
 
         public bool IsValidPosition(int x, int y)
         {
-            if(GetTileAt(x,y) == null || GetTileAt(x,y).tileType == Tile.TileType.Wall) return false;
+            if(GetTile(x,y) == null || GetTile(x,y).tileType == Tile.TileType.Wall) return false;
             else return true;
         }
 
-        public Tile GetTileAt(Vector2 pos)
+        public Tile GetTile(Vector2 pos)
         {
-            return GetTileAt(pos.x, pos.y);
+            return GetTile(pos.x, pos.y);
         }
 
-        public Tile GetTileAt(int x, int y)
+        public Tile GetTile(int x, int y)
         {
-            if(x < 0 || x > WorldData.WorldWidth-1 || y < 0 || y > WorldData.WorldHeight-1) return null;
-            return WorldData.Tiles[x, y];
+            return WorldData.GetTile(x, y);
         }
     }
 }

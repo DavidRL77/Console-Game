@@ -1,25 +1,32 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using System;
 using System.Collections.Generic;
 
 namespace Learn_test
 {
     public class Entity
     {
-        public bool StorePositions = true;
-
         public Vector2 position { get; protected set; }
+        private List<Component> components;
+
+        [JsonIgnore]
         protected Vector2 prevPos;
-        public List<Vector2> positions = new List<Vector2>();
 
-        public char display { get; protected set; } = '#';
-        public ConsoleColor color { get; protected set; }
+        public char display = '#';
+        public ConsoleColor color;
 
-        public Entity(Vector2 position, char display, ConsoleColor color)
+
+
+        public Entity(char display, ConsoleColor color, List<Component> components) : this(Vector2.Zero, display, color, components) { }
+
+        public Entity(Vector2 position, char display, ConsoleColor color, List<Component> components)
         {
             this.position = position;
             prevPos = position;
             this.display = display;
             this.color = color;
+            this.components = components;
         }
 
         /// <summary>
@@ -54,9 +61,21 @@ namespace Learn_test
             return SetPosition(position + move);
         }
 
+        public virtual void Awake(Simulation simulation)
+        {
+            foreach(Component component in components)
+            {
+                component.SetEntity(this);
+                component.Awake(simulation);
+            }
+        }
+
         public virtual void Simulate(Simulation simulation)
         {
-
+            foreach(Component component in components)
+            {
+                component.Simulate(simulation);
+            }
         }
 
         public virtual void Draw()
@@ -66,7 +85,6 @@ namespace Learn_test
             Console.ForegroundColor = color;
             Console.SetCursorPosition(position.x, position.y);
             Console.Write(display);
-            if(StorePositions) positions.Add(position);
 
             if(!prevPos.Equals(position))
             {
@@ -81,6 +99,19 @@ namespace Learn_test
             prevPos = position;
             Console.ForegroundColor = prevColor;
 
+            foreach(Component component in components)
+            {
+                component.Draw();
+            }
+        }
+
+        public T GetComponent<T>() where T : Component
+        {
+            foreach(Component component in components)
+            {
+                if(typeof(Component) == typeof(T)) return (T)component;
+            }
+            return null;
         }
     }
 }

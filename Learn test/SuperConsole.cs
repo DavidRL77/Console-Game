@@ -109,7 +109,8 @@ namespace Learn_test
             {
                 keyInfo = ReadKey(intercept: true);
 
-                if(keyInfo.Key == ConsoleKey.Backspace && sb.Length > 0)
+                if(keyInfo.KeyChar == '\0') continue;
+                else if(keyInfo.Key == ConsoleKey.Backspace && sb.Length > 0)
                 {
                     // Remove the last character from the StringBuilder
                     sb.Length--;

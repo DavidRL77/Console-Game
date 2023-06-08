@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Newtonsoft.Json;
 
 namespace Learn_test
 {
@@ -8,22 +9,17 @@ namespace Learn_test
     {
         public int x;
         public int y;
+
+        [JsonIgnore]
         public double magnitude
         {
             get { return Math.Sqrt(Math.Pow(x, 2) + Math.Pow(y, 2)); }
-            private set
-            {
-                magnitude = value;
-            }
         }
 
+        [JsonIgnore]
         public double sqrMagnitude
         {
             get { return Math.Pow(x, 2) + Math.Pow(y, 2); }
-            private set
-            {
-                sqrMagnitude = value;
-            }
         }
 
         //Default value of zero

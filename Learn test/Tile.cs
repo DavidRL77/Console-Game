@@ -1,17 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace Learn_test
 {
     public class Tile
     {
+        [JsonConverter(typeof(StringEnumConverter))]
         public enum TileType
         {
             Wall,
             Empty,
             Goal
         }
+
         public char displayChar;
         public TileType tileType;
         public ConsoleColor tileColor;

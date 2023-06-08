@@ -4,6 +4,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using System.Media;
+
 
 //The unicode for a full square is "\u2588"
 namespace Learn_test
@@ -31,27 +34,28 @@ namespace Learn_test
                 return;
             }
 
-            //Loads the worlds
-            string errorMessage = "";
-            List<WorldData> worlds = new List<WorldData>();
-            foreach(DirectoryInfo dir in directories)
-            {
-                try
-                {
-                    worlds.Add(new WorldData(dir.FullName));
-                }
-                catch(Exception e)
-                {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine(e.Message);
-                    Console.ForegroundColor = ConsoleColor.White;
-                }
-
-            }
-
             bool exit = false;
             while(!exit)
             {
+                //Loads the worlds
+                string errorMessage = "";
+                List<WorldData> worlds = new List<WorldData>();
+                foreach(DirectoryInfo dir in directories)
+                {
+                    try
+                    {
+                        worlds.Add(new WorldData(dir.FullName));
+                    }
+                    catch(Exception e)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine(e.Message);
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.ReadLine();
+                    }
+
+                }
+
                 currentSimulation = null;
 
                 //Adjusts window
