@@ -11,7 +11,7 @@ namespace ConsoleGame
     The entity class has a list of components that can only be added through AddComponent.
     The reason is that the component itself is created dynamically through reflection. Why, you may ask?
     Well, because the type is not known at compile time, since all components are loaded from files.
-    And the reason why it can and should *only* be done within the entity class, is because nothing else should have access to the component's 'entity'.
+    And the reason why it can and should *only* be done within the entity class, is because nothing else should have access to the component's "entity" property.
      */
 
     public class Entity
