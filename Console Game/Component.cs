@@ -4,12 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using NAudio.Wave;
 
 namespace ConsoleGame
 {
-    //REMEMBER: For this to work, the types of components need to be registered into the AssetRegistry first.
-
-
     public abstract class Component
     {
         [JsonIgnore]
@@ -74,6 +72,32 @@ namespace ConsoleGame
             if(simulation.GetTile(entity.position).tileType == Tile.TileType.Goal)
             {
                 simulation.Win();
+            }
+        }
+    }
+
+    public class MoveSoundComponent : Component
+    {
+        public string sound;
+
+        [JsonIgnore]
+        private Vector2 prevPos;
+
+        public override void Awake(Simulation simulation)
+        {
+            prevPos = entity.position;
+        }
+
+        public override void Draw()
+        {
+            
+        }
+
+        public override void Simulate(Simulation simulation)
+        {
+            if(prevPos != entity.position)
+            {
+                simulation.WorldData.AudioManager.Play("sfx", simulation.WorldData.Registry.Get<WaveStream>(sound));
             }
         }
     }

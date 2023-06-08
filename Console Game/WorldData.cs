@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 
 namespace ConsoleGame
 {
@@ -42,6 +44,7 @@ namespace ConsoleGame
         public List<Entity> Entities { get; private set; } = new List<Entity>();
         public Tile[,] Tiles { get; private set; }
         public AssetRegistry Registry { get; private set; }
+        public AudioManager AudioManager { get; private set; }
 
         private WorldDefinition worldDefinition;
 
@@ -51,6 +54,8 @@ namespace ConsoleGame
 
             if(!File.Exists(WorldFile)) throw new FileNotFoundException("No world file found");
             string world = File.ReadAllText(WorldFile);
+
+            AudioManager = new AudioManager("sfx", "music");
 
             Registry = new AssetRegistry();
             CreateDefaultAssets();
@@ -73,6 +78,7 @@ namespace ConsoleGame
                 if(folder != null) Directory.CreateDirectory(folder);
                 File.WriteAllText(file, JsonConvert.SerializeObject(asset.Value, Formatting.Indented));
             }
+            Directory.CreateDirectory(Path.Combine(AssetsFolder, "sounds"));
         }
 
         private void RegisterAssets()
@@ -92,7 +98,12 @@ namespace ConsoleGame
 
         private void RegisterComponents()
         {
-            Registry.Register("components/PlayerComponent", typeof(PlayerComponent));
+            //Automatically gets all subclasses of Component
+            IEnumerable<Type> componentTypes = Assembly.GetExecutingAssembly().GetTypes().Where(t => t.IsSubclassOf(typeof(Component)) && !t.IsAbstract);
+            foreach(Type type in componentTypes)
+            {
+                Registry.Register("components/" + type.Name, typeof(PlayerComponent));
+            }
         }
 
         //As much as I hate this, I need to register sounds separately because I want to register the actual streams, not the definition

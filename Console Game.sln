@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.2.32602.215
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Console Game", "Learn test\Console Game.csproj", "{189D6CF4-BF93-4042-8B07-A19C7ABF99DD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Console Game", "Console Game\Console Game.csproj", "{189D6CF4-BF93-4042-8B07-A19C7ABF99DD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Console Game Tests", "Console Game Tests\Console Game Tests.csproj", "{D33D7037-BC76-444E-9765-BA26B3AEB7E0}"
 EndProject
