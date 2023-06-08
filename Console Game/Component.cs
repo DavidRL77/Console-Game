@@ -13,14 +13,14 @@ namespace ConsoleGame
         [JsonIgnore]
         public Entity entity { get; private set; }
 
-        public abstract void Awake(Simulation simulation);
-        public abstract void Simulate(Simulation simulation);
-        public abstract void Draw();
-
-        public void SetEntity(Entity entity)
+        protected Component(Entity entity)
         {
             this.entity = entity;
         }
+
+        public abstract void Awake(Simulation simulation);
+        public abstract void Simulate(Simulation simulation);
+        public abstract void Draw();
 
         protected T GetComponent<T>() where T : Component
         {
@@ -30,6 +30,10 @@ namespace ConsoleGame
 
     public class PlayerComponent : Component
     {
+        public PlayerComponent(Entity entity) : base(entity)
+        {
+        }
+
         public override void Awake(Simulation simulation)
         {
             
@@ -82,6 +86,10 @@ namespace ConsoleGame
 
         [JsonIgnore]
         private Vector2 prevPos;
+
+        public MoveSoundComponent(Entity entity) : base(entity)
+        {
+        }
 
         public override void Awake(Simulation simulation)
         {

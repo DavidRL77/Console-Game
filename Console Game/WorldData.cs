@@ -19,7 +19,7 @@ namespace ConsoleGame
             //Entities
             {"entities/player", new EntityDefinition('#', ConsoleColor.White, new List<ComponentDefinition>()
             {
-                new ComponentDefinition("components/PlayerComponent", new PlayerComponent())
+                new ComponentDefinition("components/PlayerComponent", new PlayerComponent(null))
             }) },
 
             //World definition

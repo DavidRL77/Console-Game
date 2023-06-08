@@ -2,13 +2,14 @@
 using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace ConsoleGame
 {
     public class Entity
     {
         public Vector2 position { get; protected set; }
-        private List<Component> components;
+        private List<Component> components = new List<Component>();
 
         [JsonIgnore]
         protected Vector2 prevPos;
@@ -18,15 +19,14 @@ namespace ConsoleGame
 
 
 
-        public Entity(char display, ConsoleColor color, List<Component> components) : this(Vector2.Zero, display, color, components) { }
+        public Entity(char display, ConsoleColor color) : this(Vector2.Zero, display, color) { }
 
-        public Entity(Vector2 position, char display, ConsoleColor color, List<Component> components)
+        public Entity(Vector2 position, char display, ConsoleColor color)
         {
             this.position = position;
             prevPos = position;
             this.display = display;
             this.color = color;
-            this.components = components;
         }
 
         /// <summary>
@@ -65,7 +65,6 @@ namespace ConsoleGame
         {
             foreach(Component component in components)
             {
-                component.SetEntity(this);
                 component.Awake(simulation);
             }
         }
@@ -112,6 +111,49 @@ namespace ConsoleGame
                 if(typeof(Component) == typeof(T)) return (T)component;
             }
             return null;
+        }
+
+        /// <summary>
+        /// Adds a new component of the type T, with default parameters
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        public void AddComponent<T>() where T : Component
+        {
+            Type componentType = typeof(T);
+
+            Component instance = (Component)Activator.CreateInstance(componentType);
+            components.Add(instance);
+        }
+
+        /// <summary>
+        /// Creates a new component of type <paramref name="componentType"/> and assigns all the parameters from <paramref name="component"/> (Since components shouldn't be created outside of the entity class)
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="component"></param>
+        public void AddComponent(object component, Type componentType)
+        {
+            Component instance = (Component)Activator.CreateInstance(componentType, this);
+
+            //Use reflection to set the properties of the component instance, since I can't cast it any other way
+            PropertyInfo[] properties = componentType.GetProperties();
+            foreach(PropertyInfo property in properties)
+            {
+                if(property.CanWrite)
+                {
+                    object value = property.GetValue(component);
+                    property.SetValue(instance, value);
+                }
+            }
+
+            //Fields too
+            FieldInfo[] fields = componentType.GetFields();
+            foreach(FieldInfo field in fields)
+            {
+                object value = field.GetValue(component);
+                field.SetValue(instance, value);
+            }
+
+            components.Add(instance);
         }
     }
 }

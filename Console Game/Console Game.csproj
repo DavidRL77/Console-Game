@@ -31,10 +31,4 @@
     <Folder Include="Assets\" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="System.Windows.Extensions">
-      <HintPath>Lib\System.Windows.Extensions.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
 </Project>

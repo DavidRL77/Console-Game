@@ -1,11 +1,9 @@
-﻿using Newtonsoft.Json.Converters;
+﻿using NAudio.Wave;
+using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text.Json.Serialization;
-using NAudio.Wave;
 using System.IO;
+using System.Text.Json.Serialization;
 
 namespace ConsoleGame
 {
@@ -53,11 +51,18 @@ namespace ConsoleGame
 
         public Entity GetValue(WorldData worldData)
         {
-            return new Entity(display, color, components.Select(def => def.GetValue(worldData)).ToList());
+            Entity entity = new Entity(display, color);
+
+            foreach(ComponentDefinition componentDefinition in components)
+            {
+                Type type = worldData.Registry.Get<Type>(componentDefinition.componentPath);
+                entity.AddComponent(componentDefinition.component, type);
+            }
+            return entity;
         }
     }
 
-    public struct ComponentDefinition : IDefinition<Component>
+    public struct ComponentDefinition : IDefinition<ComponentDefinition>
     {
         public string componentPath; //The path to the *type* of component
         public object component; //The value of the component, later "cast" into the type
@@ -68,31 +73,9 @@ namespace ConsoleGame
             this.component = component;
         }
 
-        public Component GetValue(WorldData worldData)
+        public ComponentDefinition GetValue(WorldData worldData)
         {
-            Type componentType = worldData.Registry.Get<Type>(componentPath);
-            Component instance = (Component)Activator.CreateInstance(componentType);
-
-            //Use reflection to set the properties of the component instance, since I can't cast it any other way
-            PropertyInfo[] properties = componentType.GetProperties();
-            foreach(PropertyInfo property in properties)
-            {
-                if(property.CanWrite)
-                {
-                    object value = property.GetValue(component);
-                    property.SetValue(instance, value);
-                }
-            }
-
-            //Fields too
-            FieldInfo[] fields = componentType.GetFields();
-            foreach(FieldInfo field in fields)
-            {
-                object value = field.GetValue(component);
-                field.SetValue(instance, value);
-            }
-
-            return instance;
+            return this;
         }
     }
 
