@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Learn_test.Properties {
+namespace ConsoleGame.Properties {
     using System;
     
     

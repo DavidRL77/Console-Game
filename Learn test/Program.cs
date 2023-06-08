@@ -1,15 +1,12 @@
-﻿using System;
+﻿using NAudio.Wave;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using System.Media;
-
 
 //The unicode for a full square is "\u2588"
-namespace Learn_test
+namespace ConsoleGame
 {
     class Program
     {
@@ -91,7 +88,7 @@ namespace Learn_test
                 int i = 0;
                 foreach(T value in values)
                 {
-                    Console.WriteLine(i+".- " + value.ToString());
+                    Console.WriteLine(i + ".- " + value.ToString());
                     i++;
                 }
 

@@ -4,13 +4,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.Json.Serialization;
+using NAudio.Wave;
+using System.IO;
 
-namespace Learn_test
+namespace ConsoleGame
 {
+    //This contains all the definitions that are used in the json files
 
     public interface IDefinition<T>
     {
-        T GetValue(AssetRegistry registry);
+        T GetValue(WorldData worldData);
     }
 
     public struct TileDefinition : IDefinition<Tile>
@@ -28,7 +31,7 @@ namespace Learn_test
             this.tileColor = tileColor;
         }
 
-        public Tile GetValue(AssetRegistry registry)
+        public Tile GetValue(WorldData worldData)
         {
             return new Tile(displayChar, tileType, tileColor);
         }
@@ -48,16 +51,16 @@ namespace Learn_test
             this.components = components;
         }
 
-        public Entity GetValue(AssetRegistry registry)
+        public Entity GetValue(WorldData worldData)
         {
-            return new Entity(display, color, components.Select(def => def.GetValue(registry)).ToList());
+            return new Entity(display, color, components.Select(def => def.GetValue(worldData)).ToList());
         }
     }
 
     public struct ComponentDefinition : IDefinition<Component>
     {
-        public string componentPath;
-        public object component;
+        public string componentPath; //The path to the *type* of component
+        public object component; //The value of the component, later "cast" into the type
 
         public ComponentDefinition(string componentPath, object component)
         {
@@ -65,9 +68,9 @@ namespace Learn_test
             this.component = component;
         }
 
-        public Component GetValue(AssetRegistry registry)
+        public Component GetValue(WorldData worldData)
         {
-            Type componentType = registry.Get<Type>(componentPath);
+            Type componentType = worldData.Registry.Get<Type>(componentPath);
             Component instance = (Component)Activator.CreateInstance(componentType);
 
             //Use reflection to set the properties of the component instance, since I can't cast it any other way
@@ -93,18 +96,39 @@ namespace Learn_test
         }
     }
 
-    public struct WorldDefinition : IDefinition<Dictionary<char, string>>
+    //Yeah, i don't like this circular reference either
+    public struct WorldDefinition : IDefinition<WorldDefinition>
     {
-        public Dictionary<char, string> world;
+        public Dictionary<char, string> world; //The file character with its associated asset path
 
         public WorldDefinition(Dictionary<char, string> world)
         {
             this.world = world;
         }
 
-        public Dictionary<char, string> GetValue(AssetRegistry registry)
+        public WorldDefinition GetValue(WorldData worldData)
         {
-            return world;
+            return this;
+        }
+    }
+
+    public struct SoundDefinition : IDefinition<WaveStream>
+    {
+        public string filePath;
+        public bool looping;
+
+        public SoundDefinition(string filePath, bool looping)
+        {
+            this.filePath = filePath;
+            this.looping = looping;
+        }
+
+        public WaveStream GetValue(WorldData worldData)
+        {
+            bool isRelative = !Path.IsPathFullyQualified(filePath);
+            string fullPath = isRelative ? worldData.GetFullPath(filePath) : filePath;
+
+            return new AudioFileReader(fullPath);
         }
     }
 }

@@ -4,7 +4,7 @@ using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace Learn_test
+namespace ConsoleGame
 {
     public class Tile
     {

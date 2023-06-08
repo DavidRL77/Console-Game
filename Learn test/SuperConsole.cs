@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Threading;
 
-namespace Learn_test
+namespace ConsoleGame
 {
     /// <summary>
     /// A way to write some shit babyyyy

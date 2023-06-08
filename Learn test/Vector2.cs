@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Newtonsoft.Json;
 
-namespace Learn_test
+namespace ConsoleGame
 {
     public class Vector2
     {

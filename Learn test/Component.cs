@@ -5,8 +5,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Learn_test
+namespace ConsoleGame
 {
+    //REMEMBER: For this to work, the types of components need to be registered into the AssetRegistry first.
+
+
     public abstract class Component
     {
         [JsonIgnore]

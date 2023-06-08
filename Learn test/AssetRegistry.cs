@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Learn_test
+namespace ConsoleGame
 {
     public class AssetRegistry
     {

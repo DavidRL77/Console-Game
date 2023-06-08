@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace Learn_test
+namespace ConsoleGame
 {
     public class WorldData
     {
@@ -43,7 +43,7 @@ namespace Learn_test
         public Tile[,] Tiles { get; private set; }
         public AssetRegistry Registry { get; private set; }
 
-        private Dictionary<char, string> worldDefinition;
+        private WorldDefinition worldDefinition;
 
         public WorldData(string directory)
         {
@@ -56,11 +56,12 @@ namespace Learn_test
             CreateDefaultAssets();
             RegisterAssets();
 
-            worldDefinition = Registry.Get<WorldDefinition>("world").GetValue(Registry);
+            worldDefinition = Registry.Get<WorldDefinition>("world");
 
             Init(Path.GetFileName(WorldFolder), world);
         }
 
+        //Creates the default asset files, if they are not present
         private void CreateDefaultAssets()
         {
             foreach(KeyValuePair<string, object> asset in DEFAULT_ASSETS)
@@ -76,23 +77,34 @@ namespace Learn_test
 
         private void RegisterAssets()
         {
-            string entitiesFolder = Path.Combine(AssetsFolder, "entities");
-            string tilesFolder = Path.Combine(AssetsFolder, "tiles");
-            string worldDefinition = Path.Combine(AssetsFolder, "world.json");
-
             RegisterComponents();
+            RegisterSounds();
 
-            RegisterAssetsFromFolder<EntityDefinition>(entitiesFolder);
-            RegisterAssetsFromFolder<TileDefinition>(tilesFolder);
+            RegisterAssetsFromFolder<EntityDefinition>(Path.Combine(AssetsFolder, "entities"));
+            RegisterAssetsFromFolder<TileDefinition>(Path.Combine(AssetsFolder, "tiles"));
 
-            //World definition
-            Registry.Register("world", JsonConvert.DeserializeObject<WorldDefinition>(File.ReadAllText(worldDefinition)));
+
+            string worldDefinitionJson = File.ReadAllText(Path.Combine(AssetsFolder, "world.json"));
+            WorldDefinition worldDefinition = JsonConvert.DeserializeObject<WorldDefinition>(worldDefinitionJson);
+            Registry.Register("world", worldDefinition);
 
         }
 
         private void RegisterComponents()
         {
             Registry.Register("components/PlayerComponent", typeof(PlayerComponent));
+        }
+
+        //As much as I hate this, I need to register sounds separately because I want to register the actual streams, not the definition
+        private void RegisterSounds()
+        {
+            string path = Path.Combine(AssetsFolder, "sounds");
+            foreach(string file in Directory.GetFiles(path, "*", SearchOption.AllDirectories))
+            {
+                SoundDefinition soundDefinition = JsonConvert.DeserializeObject<SoundDefinition>(File.ReadAllText(file));
+                Registry.Register(GetRelativePath(file), soundDefinition.GetValue(this));
+            }
+            Registry.Register("sounds/none", null);
         }
 
         private void RegisterAssetsFromFolder<T>(string folder)
@@ -126,7 +138,7 @@ namespace Learn_test
                 {
                     char c = line[x];
 
-                    if(worldDefinition.TryGetValue(c, out string path))
+                    if(worldDefinition.world.TryGetValue(c, out string path))
                     {
                         string folder = GetFolder(path);
                         switch(folder)
@@ -134,12 +146,12 @@ namespace Learn_test
                             case "items":
                                 break;
                             case "entities":
-                                Entity entity = Registry.Get<EntityDefinition>(path).GetValue(Registry);
+                                Entity entity = Registry.Get<EntityDefinition>(path).GetValue(this);
                                 entity.SetPosition(x, y);
                                 Entities.Add(entity);
                                 break;
                             case "tiles":
-                                Tile tile = Registry.Get<TileDefinition>(path).GetValue(Registry);
+                                Tile tile = Registry.Get<TileDefinition>(path).GetValue(this);
                                 SetTile(x, y, tile);
                                 break;
                             default:
@@ -170,20 +182,23 @@ namespace Learn_test
             return WorldName;
         }
 
-        private string GetAssetFolder(string relativePath)
+        public string GetAssetFolder(string relativePath)
         {
-            int index = relativePath.LastIndexOf('/');
-            if(index < 0) return null;
+            if(relativePath.Length == 0) return null;
+
+            int index = relativePath.Replace('\\', '/').LastIndexOf('/');
+            if(index < 0) return relativePath;
             string folder = relativePath.Substring(0, index);
             return Path.Combine(AssetsFolder, folder);
         }
-        private string GetAssetFile(string relativePath)
+
+        public string GetAssetFile(string relativePath)
         {
             string file = relativePath + ".json";
             return Path.Combine(AssetsFolder, file);
         }
 
-        private string GetFolder(string relativePath)
+        public string GetFolder(string relativePath)
         {
             int index = relativePath.IndexOf('/');
             if(index < 0) return relativePath;
@@ -196,6 +211,11 @@ namespace Learn_test
             int startIndex = path.LastIndexOf("assets") + 7;
             int endIndex = path.LastIndexOf(".");
             return path.Substring(startIndex, endIndex - startIndex).Replace("\\", "/");
+        }
+
+        public string GetFullPath(string relativePath)
+        {
+            return Path.Combine(AssetsFolder, relativePath);
         }
     }
 }

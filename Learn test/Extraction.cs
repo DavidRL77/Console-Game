@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Learn_test
+namespace ConsoleGame
 {
     public class Extraction
     {

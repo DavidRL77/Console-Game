@@ -4,7 +4,7 @@ using System.Text;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace Learn_test
+namespace ConsoleGame
 {
     static class WindowUtility
     {

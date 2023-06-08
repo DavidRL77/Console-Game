@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 
-namespace Learn_test
+namespace ConsoleGame
 {
     public class Simulation
     {
