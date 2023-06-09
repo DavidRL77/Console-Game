@@ -32,6 +32,8 @@ namespace ConsoleGame
 
         public void Play(string channel, WaveStream waveStream)
         {
+            if(waveStream == null) return;
+
             WaveOut waveOut = channels[channel];
             Stop(channel);
 
