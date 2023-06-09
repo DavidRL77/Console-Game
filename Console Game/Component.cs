@@ -10,6 +10,8 @@ namespace ConsoleGame
 {
     public abstract class Component
     {
+        public bool enabled = true;
+
         [JsonIgnore]
         public Entity entity { get; private set; }
 
@@ -105,7 +107,7 @@ namespace ConsoleGame
         {
             if(prevPos != entity.position)
             {
-                simulation.WorldData.AudioManager.Play("sfx", simulation.WorldData.Registry.Get<WaveStream>(sound));
+                simulation.WorldData.PlaySound("sfx", sound);
             }
         }
     }
