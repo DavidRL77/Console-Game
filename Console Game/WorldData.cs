@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using NAudio.Wave;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -174,6 +175,16 @@ namespace ConsoleGame
                 }
 
             }
+        }
+
+        public void PlaySound(string path, string channel)
+        {
+            AudioManager.Play(channel, Registry.Get<WaveStream>(path));
+        }
+
+        public void PlaySound(string path, string channel, float volume)
+        {
+            AudioManager.Play(channel, Registry.Get<WaveStream>(path), volume);
         }
 
         public void SetTile(int x, int y, Tile tile)
