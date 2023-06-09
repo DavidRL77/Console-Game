@@ -1,5 +1,6 @@
 ﻿using NAudio.Wave;
 using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -56,26 +57,26 @@ namespace ConsoleGame
             foreach(ComponentDefinition componentDefinition in components)
             {
                 Type type = worldData.Registry.Get<Type>(componentDefinition.componentPath);
-                entity.AddComponent(componentDefinition.component, type);
+                entity.AddComponent(componentDefinition.GetValue(worldData), type);
             }
             return entity;
         }
     }
 
-    public struct ComponentDefinition : IDefinition<ComponentDefinition>
+    public struct ComponentDefinition : IDefinition<JObject>
     {
         public string componentPath; //The path to the *type* of component
-        public object component; //The value of the component, later "cast" into the type
+        public JObject component; //The value of the component, later "cast" into the type
 
-        public ComponentDefinition(string componentPath, object component)
+        public ComponentDefinition(string componentPath, JObject component)
         {
             this.componentPath = componentPath;
             this.component = component;
         }
 
-        public ComponentDefinition GetValue(WorldData worldData)
+        public JObject GetValue(WorldData worldData)
         {
-            return this;
+            return component;
         }
     }
 

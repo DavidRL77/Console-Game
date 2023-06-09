@@ -47,5 +47,13 @@ namespace Console_Game_Tests
             audioManager.SetChannelVolume("music", 1f);
             Thread.Sleep(1000);
         }
+
+        //[TestMethod]
+        //public void LoopingTest()
+        //{
+        //    AudioManager audioManager = new AudioManager("sfx", "music");
+
+        //    audioManager.Play("music", streams["angel"]);
+        //}
     }
 }

@@ -1,5 +1,6 @@
 ﻿using NAudio.Wave;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -19,18 +20,20 @@ namespace ConsoleGame
 
             //Entities
             {"entities/player", new EntityDefinition('#', ConsoleColor.White, new List<ComponentDefinition>()
-            {
-                new ComponentDefinition("components/PlayerComponent", new PlayerComponent(null))
-            }) },
+                {
+                    new ComponentDefinition("components/PlayerComponent", JObject.FromObject(new PlayerComponent(null)))
+                } )
+            },
 
             //World definition
             {"world", new WorldDefinition(new Dictionary<char, string>()
-            {
-                {'p', "entities/player"},
-                {' ', "tiles/empty"},
-                {'g', "tiles/goal"},
-                {'#', "tiles/wall"},
-            })}
+                {
+                    {'p', "entities/player"},
+                    {' ', "tiles/empty"},
+                    {'g', "tiles/goal"},
+                    {'#', "tiles/wall"},
+                } )
+            }
         };
 
         public string WorldName { get; private set; }
