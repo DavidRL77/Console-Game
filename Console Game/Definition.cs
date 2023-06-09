@@ -102,7 +102,7 @@ namespace ConsoleGame
         public float volume = 1;
 
         [JsonIgnore]
-        public WaveStream stream { get; private set; } = null;
+        public List<WaveStream> streams { get; private set; } = null;
 
         public SoundDefinition(string filePath, float volume)
         {
@@ -115,7 +115,23 @@ namespace ConsoleGame
             bool isRelative = !Path.IsPathFullyQualified(filePath);
             string fullPath = isRelative ? worldData.GetFullPath(filePath) : filePath;
 
-            return stream ?? new AudioFileReader(fullPath);
+            if(streams == null)
+            {
+                streams = new List<WaveStream>();
+                FileAttributes attributes = File.GetAttributes(fullPath);
+                if(attributes.HasFlag(FileAttributes.Directory)) //Load the whole directory the path is pointing to
+                {
+                    foreach(string file in Directory.GetFiles(fullPath))
+                    {
+                        streams.Add(new AudioFileReader(file));
+                    }
+                }
+                else streams.Add(new AudioFileReader(fullPath)); //Load the file the path is pointing to
+
+                if(streams.Count == 0) throw new Exception("The directory " + fullPath + " is empty");
+            }
+
+            return streams.Count == 1 ? streams[0] : streams.RandomElement();
         }
     }
 }

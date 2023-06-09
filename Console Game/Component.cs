@@ -84,7 +84,7 @@ namespace ConsoleGame
 
     public class MoveSoundComponent : Component
     {
-        public string[] sounds;
+        public string sound;
 
         [JsonIgnore]
         private Vector2 prevPos;
@@ -107,7 +107,7 @@ namespace ConsoleGame
         {
             if(prevPos != entity.position)
             {
-                simulation.WorldData.PlaySound("sfx", sounds.RandomElement());
+                simulation.WorldData.PlaySound("sfx", sound);
             }
         }
     }

@@ -1,9 +1,6 @@
 ﻿using NAudio.Wave;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ConsoleGame
 {
@@ -35,13 +32,14 @@ namespace ConsoleGame
             if(waveStream == null) return;
 
             WaveOut waveOut = channels[channel];
-            Stop(channel);
+            waveOut.Stop();
 
             //Resets the stream
             waveStream.Position = 0;
 
             waveOut.Init(waveStream);
             waveOut.Play();
+
         }
 
         public void Play(string channel, WaveStream waveStream, float volume)
