@@ -88,11 +88,11 @@ namespace ConsoleGame
         private void RegisterAssets()
         {
             RegisterComponents();
-            RegisterSounds();
+            //RegisterSounds();
 
             RegisterAssetsFromFolder<EntityDefinition>(Path.Combine(AssetsFolder, "entities"));
             RegisterAssetsFromFolder<TileDefinition>(Path.Combine(AssetsFolder, "tiles"));
-
+            RegisterAssetsFromFolder<SoundDefinition>(Path.Combine(AssetsFolder, "sounds"));
 
             string worldDefinitionJson = File.ReadAllText(Path.Combine(AssetsFolder, "world.json"));
             WorldDefinition worldDefinition = JsonConvert.DeserializeObject<WorldDefinition>(worldDefinitionJson);
@@ -126,6 +126,10 @@ namespace ConsoleGame
                 {
                     ThrowJsonError(file, e);
                 }
+                catch(Exception e)
+                {
+                    throw new Exception("Error in file: " + file + "\n" + e.Message);
+                }
             }
             Registry.Register("sounds/none", null);
         }
@@ -142,7 +146,11 @@ namespace ConsoleGame
                 {
                     ThrowJsonError(file, e);
                 }
-               
+                catch(Exception e)
+                {
+                    throw new Exception("Error in file: " + file + "\n" + e.Message);
+                }
+
             }
         }
 
@@ -198,17 +206,14 @@ namespace ConsoleGame
 
         private void ThrowJsonError(string file, JsonReaderException e)
         {
-            throw new JsonReaderException("Error in file " + file + ": " + e.Message);
+            string tip = Utils.GetJsonTip(e);
+            throw new JsonReaderException("Error in file " + file + ": \n" + e.Message.Escaped() + "\n\nTip: " + tip);
         }
 
-        public void PlaySound(string path, string channel)
+        public void PlaySound(string channel, string path)
         {
-            AudioManager.Play(channel, Registry.Get<WaveStream>(path));
-        }
-
-        public void PlaySound(string path, string channel, float volume)
-        {
-            AudioManager.Play(channel, Registry.Get<WaveStream>(path), volume);
+            SoundDefinition definition = Registry.Get<SoundDefinition>(path);
+            AudioManager.Play(channel, definition.GetValue(this), definition.volume);
         }
 
         public void SetTile(int x, int y, Tile tile)
@@ -251,7 +256,7 @@ namespace ConsoleGame
             return relativePath.Substring(0, index);
         }
 
-        private string GetRelativePath(string path)
+        public string GetRelativePath(string path)
         {
             //+7 to start *after* "assets\"
             int startIndex = path.LastIndexOf("assets") + 7;

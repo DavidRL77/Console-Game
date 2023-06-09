@@ -99,12 +99,15 @@ namespace ConsoleGame
     public struct SoundDefinition : IDefinition<WaveStream>
     {
         public string filePath;
-        public bool looping;
+        public float volume = 1;
 
-        public SoundDefinition(string filePath, bool looping)
+        [JsonIgnore]
+        public WaveStream stream { get; private set; } = null;
+
+        public SoundDefinition(string filePath, float volume)
         {
             this.filePath = filePath;
-            this.looping = looping;
+            this.volume = volume;
         }
 
         public WaveStream GetValue(WorldData worldData)
@@ -112,7 +115,7 @@ namespace ConsoleGame
             bool isRelative = !Path.IsPathFullyQualified(filePath);
             string fullPath = isRelative ? worldData.GetFullPath(filePath) : filePath;
 
-            return new AudioFileReader(fullPath);
+            return stream ?? new AudioFileReader(fullPath);
         }
     }
 }
