@@ -138,37 +138,6 @@ namespace ConsoleGame
         /// <summary>
         /// Creates a new component of type <paramref name="componentType"/> and assigns all the parameters from <paramref name="component"/> (Since components shouldn't be created outside of the entity class)
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="component"></param>
-        public void AddComponent(object component, Type componentType)
-        {
-            Component instance = (Component)Activator.CreateInstance(componentType, this);
-
-            //Use reflection to set the properties of the component instance, since I can't cast it any other way
-            PropertyInfo[] properties = componentType.GetProperties();
-            foreach(PropertyInfo property in properties)
-            {
-                if(property.CanWrite)
-                {
-                    object value = property.GetValue(component);
-                    property.SetValue(instance, value);
-                }
-            }
-
-            //Fields too
-            FieldInfo[] fields = componentType.GetFields();
-            foreach(FieldInfo field in fields)
-            {
-                object value = field.GetValue(component);
-                field.SetValue(instance, value);
-            }
-
-            components.Add(instance);
-        }
-
-        /// <summary>
-        /// Creates a new component of type <paramref name="componentType"/> and assigns all the parameters from <paramref name="component"/> (Since components shouldn't be created outside of the entity class)
-        /// </summary>
         /// <param name="component"></param>
         /// <param name="componentType"></param>
         public void AddComponent(JObject component, Type componentType)
