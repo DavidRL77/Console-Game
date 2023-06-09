@@ -106,7 +106,7 @@ namespace ConsoleGame
             IEnumerable<Type> componentTypes = Assembly.GetExecutingAssembly().GetTypes().Where(t => t.IsSubclassOf(typeof(Component)) && !t.IsAbstract);
             foreach(Type type in componentTypes)
             {
-                Registry.Register("components/" + type.Name, typeof(PlayerComponent));
+                Registry.Register("components/" + type.Name, type);
             }
         }
 
@@ -114,10 +114,18 @@ namespace ConsoleGame
         private void RegisterSounds()
         {
             string path = Path.Combine(AssetsFolder, "sounds");
+
             foreach(string file in Directory.GetFiles(path, "*", SearchOption.AllDirectories))
             {
-                SoundDefinition soundDefinition = JsonConvert.DeserializeObject<SoundDefinition>(File.ReadAllText(file));
-                Registry.Register(GetRelativePath(file), soundDefinition.GetValue(this));
+                try
+                {
+                    SoundDefinition soundDefinition = JsonConvert.DeserializeObject<SoundDefinition>(File.ReadAllText(file));
+                    Registry.Register(GetRelativePath(file), soundDefinition.GetValue(this));
+                }
+                catch(JsonReaderException e)
+                {
+                    ThrowJsonError(file, e);
+                }
             }
             Registry.Register("sounds/none", null);
         }
@@ -126,7 +134,15 @@ namespace ConsoleGame
         {
             foreach(string file in Directory.GetFiles(folder, "*.json", SearchOption.AllDirectories))
             {
-                Registry.Register(GetRelativePath(file), JsonConvert.DeserializeObject<T>(File.ReadAllText(file)));
+                try
+                {
+                    Registry.Register(GetRelativePath(file), JsonConvert.DeserializeObject<T>(File.ReadAllText(file)));
+                }
+                catch(JsonReaderException e)
+                {
+                    ThrowJsonError(file, e);
+                }
+               
             }
         }
 
@@ -178,6 +194,11 @@ namespace ConsoleGame
                 }
 
             }
+        }
+
+        private void ThrowJsonError(string file, JsonReaderException e)
+        {
+            throw new JsonReaderException("Error in file " + file + ": " + e.Message);
         }
 
         public void PlaySound(string path, string channel)
