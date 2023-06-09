@@ -15,7 +15,7 @@ namespace ConsoleGame
         T GetValue(WorldData worldData);
     }
 
-    public struct TileDefinition : IDefinition<Tile>
+    public class TileDefinition : IDefinition<Tile>
     {
         public char displayChar;
         public Tile.TileType tileType;
@@ -36,7 +36,7 @@ namespace ConsoleGame
         }
     }
 
-    public struct EntityDefinition : IDefinition<Entity>
+    public class EntityDefinition : IDefinition<Entity>
     {
         public char display;
         [JsonConverter(typeof(StringEnumConverter))]
@@ -63,7 +63,7 @@ namespace ConsoleGame
         }
     }
 
-    public struct ComponentDefinition : IDefinition<JObject>
+    public class ComponentDefinition : IDefinition<JObject>
     {
         public string componentPath; //The path to the *type* of component
         public JObject component; //The value of the component, later "cast" into the type
@@ -81,7 +81,7 @@ namespace ConsoleGame
     }
 
     //Yeah, i don't like this circular reference either
-    public struct WorldDefinition : IDefinition<WorldDefinition>
+    public class WorldDefinition : IDefinition<WorldDefinition>
     {
         public Dictionary<char, string> world; //The file character with its associated asset path
 
@@ -96,7 +96,7 @@ namespace ConsoleGame
         }
     }
 
-    public struct SoundDefinition : IDefinition<WaveStream>
+    public class SoundDefinition : IDefinition<WaveStream>
     {
         public string filePath;
         public float volume = 1;
