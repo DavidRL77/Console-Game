@@ -105,7 +105,7 @@ namespace ConsoleGame
 
         public override void Simulate(Simulation simulation)
         {
-            if(prevPos != entity.position)
+            if(!prevPos.Equals(entity.position))
             {
                 simulation.WorldData.PlaySound("sfx", sound);
             }

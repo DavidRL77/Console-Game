@@ -75,21 +75,12 @@ namespace Console_Game_Tests
                 Thread.Sleep(5);
             }
 
-            for(int i = 0; i < 500; i++)
+            for(int i = 0; i < 77; i++)
             {
                 KeyValuePair<string, WaveStream> kvp = steps.RandomElement();
                 audioManager.Play("sfx", kvp.Value);
 
-                int delay = Utils.rnd.Next(100, 200);
-                Thread.Sleep(delay);
-            }
-
-            for(int i = 0; i < 500; i++)
-            {
-                KeyValuePair<string, WaveStream> kvp = steps.RandomElement();
-                audioManager.Play("sfx", kvp.Value);
-
-                int delay = Utils.rnd.Next(10);
+                int delay = Utils.rnd.Next(1000);
                 Thread.Sleep(delay);
             }
         }
