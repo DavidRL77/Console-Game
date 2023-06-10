@@ -96,13 +96,13 @@ namespace ConsoleGame
         }
     }
 
-    public class SoundDefinition : IDefinition<WaveStream>
+    public class SoundDefinition : IDefinition<WaveBundle>
     {
         public string filePath;
         public float volume = 1;
 
         [JsonIgnore]
-        public List<WaveStream> streams { get; private set; } = null;
+        public List<WaveBundle> bundles { get; private set; } = null;
 
         public SoundDefinition(string filePath, float volume)
         {
@@ -110,28 +110,43 @@ namespace ConsoleGame
             this.volume = volume;
         }
 
-        public WaveStream GetValue(WorldData worldData)
+        public WaveBundle GetValue(WorldData worldData)
         {
             bool isRelative = !Path.IsPathFullyQualified(filePath);
             string fullPath = isRelative ? worldData.GetFullPath(filePath) : filePath;
 
-            if(streams == null)
+            if(bundles == null)
             {
-                streams = new List<WaveStream>();
+                bundles = new List<WaveBundle>();
                 FileAttributes attributes = File.GetAttributes(fullPath);
                 if(attributes.HasFlag(FileAttributes.Directory)) //Load the whole directory the path is pointing to
                 {
                     foreach(string file in Directory.GetFiles(fullPath))
                     {
-                        streams.Add(new AudioFileReader(file));
+                        bundles.Add(CreateWaveBundle(file, volume));
                     }
                 }
-                else streams.Add(new AudioFileReader(fullPath)); //Load the file the path is pointing to
+                else bundles.Add(CreateWaveBundle(fullPath, volume)); //Load the file the path is pointing to
 
-                if(streams.Count == 0) throw new Exception("The directory " + fullPath + " is empty");
+                if(bundles.Count == 0) throw new Exception("The directory " + fullPath + " is empty");
             }
 
-            return streams.Count == 1 ? streams[0] : streams.RandomElement();
+            return bundles.Count == 1 ? bundles[0] : bundles.RandomElement();
+        }
+
+        private WaveBundle CreateWaveBundle(string file, float volume)
+        {
+            WaveOut waveOut = new WaveOut();
+            WaveStream stream = new AudioFileReader(file);
+            return new WaveBundle(waveOut, stream, volume);
+        }
+
+        ~SoundDefinition()
+        {
+            foreach(WaveBundle bundle in bundles)
+            {
+                bundle.Dispose();
+            }
         }
     }
 }

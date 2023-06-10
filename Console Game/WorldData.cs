@@ -10,7 +10,7 @@ using System.Reflection;
 
 namespace ConsoleGame
 {
-    public class WorldData
+    public class WorldData : IDisposable
     {
         public static readonly Dictionary<string, object> DEFAULT_ASSETS = new Dictionary<string, object>()
         {
@@ -214,7 +214,9 @@ namespace ConsoleGame
         public void PlaySound(string channel, string path)
         {
             SoundDefinition definition = Registry.Get<SoundDefinition>(path);
-            AudioManager.Play(channel, definition.GetValue(this), definition.volume);
+            WaveBundle bundle = definition.GetValue(this);
+            AudioManager.Play(channel, definition.GetValue(this));
+
         }
 
         public void SetTile(int x, int y, Tile tile)
@@ -268,6 +270,16 @@ namespace ConsoleGame
         public string GetFullPath(string relativePath)
         {
             return Path.Combine(AssetsFolder, relativePath);
+        }
+
+        ~WorldData()
+        {
+            Dispose();
+        }
+
+        public void Dispose()
+        {
+            AudioManager.Dispose();
         }
     }
 }

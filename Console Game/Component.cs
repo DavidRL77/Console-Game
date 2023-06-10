@@ -108,6 +108,7 @@ namespace ConsoleGame
             if(!prevPos.Equals(entity.position))
             {
                 simulation.WorldData.PlaySound("sfx", sound);
+                prevPos = entity.position;
             }
         }
     }
