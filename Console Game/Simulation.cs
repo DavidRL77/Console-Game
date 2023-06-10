@@ -18,7 +18,6 @@ namespace ConsoleGame
 
         public Simulation(WorldData worldData)
         {
-            Extraction e = new Extraction();
             Time = 0;
             Console.CursorVisible = false;
             WorldData = worldData;

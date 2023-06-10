@@ -32,7 +32,7 @@ namespace ConsoleGame
             if(waveStream == null) return;
 
             WaveOut waveOut = channels[channel];
-            waveOut.Stop();
+            if(waveOut.PlaybackState == PlaybackState.Playing) waveOut.Stop();
 
             //Resets the stream
             waveStream.Position = 0;
