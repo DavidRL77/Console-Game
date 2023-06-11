@@ -151,7 +151,7 @@ namespace ConsoleGame
 
         public void Dispose()
         {
-            WaveBundle.Dispose();
+            WaveBundle?.Dispose();
         }
 
     }

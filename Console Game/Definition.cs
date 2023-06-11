@@ -13,6 +13,8 @@ namespace ConsoleGame
     public interface IDefinition<T>
     {
         T GetValue(WorldData worldData);
+
+        void Init(WorldData worldData);
     }
 
     public class TileDefinition : IDefinition<Tile>
@@ -22,6 +24,7 @@ namespace ConsoleGame
 
         [JsonConverter(typeof(StringEnumConverter))]
         public ConsoleColor tileColor;
+        public string material;
 
         public TileDefinition(char displayChar, Tile.TileType tileType, ConsoleColor tileColor)
         {
@@ -32,7 +35,12 @@ namespace ConsoleGame
 
         public Tile GetValue(WorldData worldData)
         {
-            return new Tile(displayChar, tileType, tileColor);
+            return new Tile(displayChar, tileType, tileColor, material);
+        }
+
+        public void Init(WorldData worldData)
+        {
+            
         }
     }
 
@@ -61,6 +69,11 @@ namespace ConsoleGame
             }
             return entity;
         }
+
+        public void Init(WorldData worldData)
+        {
+            
+        }
     }
 
     public class ComponentDefinition : IDefinition<JObject>
@@ -78,6 +91,11 @@ namespace ConsoleGame
         {
             return component;
         }
+
+        public void Init(WorldData worldData)
+        {
+            
+        }
     }
 
     //Yeah, i don't like this circular reference either
@@ -93,6 +111,11 @@ namespace ConsoleGame
         public WorldDefinition GetValue(WorldData worldData)
         {
             return this;
+        }
+
+        public void Init(WorldData worldData)
+        {
+            
         }
     }
 
@@ -112,28 +135,27 @@ namespace ConsoleGame
 
         public WaveBundle GetValue(WorldData worldData)
         {
-            bool isRelative = !Path.IsPathFullyQualified(filePath);
-            string fullPath = isRelative ? worldData.GetFullPath(filePath) : filePath;
-
-            if(bundles == null)
-            {
-                bundles = new List<WaveBundle>();
-                FileAttributes attributes = File.GetAttributes(fullPath);
-                if(attributes.HasFlag(FileAttributes.Directory)) //Load the whole directory the path is pointing to
-                {
-                    foreach(string file in Directory.GetFiles(fullPath))
-                    {
-                        bundles.Add(CreateWaveBundle(file, volume));
-                    }
-                }
-                else bundles.Add(CreateWaveBundle(fullPath, volume)); //Load the file the path is pointing to
-
-                if(bundles.Count == 0) throw new Exception("The directory " + fullPath + " is empty");
-            }
-
             return bundles.Count == 1 ? bundles[0] : bundles.RandomElement();
         }
 
+
+        public void Init(WorldData worldData)
+        {
+            bool isRelative = !Path.IsPathFullyQualified(filePath);
+            string fullPath = isRelative ? worldData.GetFullPath(filePath) : filePath;
+            bundles = new List<WaveBundle>();
+            FileAttributes attributes = File.GetAttributes(fullPath);
+            if(attributes.HasFlag(FileAttributes.Directory)) //Load the whole directory the path is pointing to
+            {
+                foreach(string file in Directory.GetFiles(fullPath))
+                {
+                    bundles.Add(CreateWaveBundle(file, volume));
+                }
+            }
+            else bundles.Add(CreateWaveBundle(fullPath, volume)); //Load the file the path is pointing to
+
+            if(bundles.Count == 0) throw new Exception("The directory " + fullPath + " is empty");
+        }
         private WaveBundle CreateWaveBundle(string file, float volume)
         {
             WaveOut waveOut = new WaveOut();

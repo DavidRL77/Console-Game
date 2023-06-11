@@ -91,14 +91,13 @@ namespace ConsoleGame
             RegisterComponents();
             //RegisterSounds();
 
-            RegisterAssetsFromFolder<EntityDefinition>(Path.Combine(AssetsFolder, "entities"));
-            RegisterAssetsFromFolder<TileDefinition>(Path.Combine(AssetsFolder, "tiles"));
-            RegisterAssetsFromFolder<SoundDefinition>(Path.Combine(AssetsFolder, "sounds"));
+            RegisterAssetsFromFolder<EntityDefinition, Entity>(Path.Combine(AssetsFolder, "entities"));
+            RegisterAssetsFromFolder<TileDefinition, Tile>(Path.Combine(AssetsFolder, "tiles"));
+            RegisterAssetsFromFolder<SoundDefinition, WaveBundle>(Path.Combine(AssetsFolder, "sounds"));
 
             string worldDefinitionJson = File.ReadAllText(Path.Combine(AssetsFolder, "world.json"));
             WorldDefinition worldDefinition = JsonConvert.DeserializeObject<WorldDefinition>(worldDefinitionJson);
             Registry.Register("world", worldDefinition);
-
         }
 
         private void RegisterComponents()
@@ -111,37 +110,15 @@ namespace ConsoleGame
             }
         }
 
-        //As much as I hate this, I need to register sounds separately because I want to register the actual streams, not the definition
-        private void RegisterSounds()
-        {
-            string path = Path.Combine(AssetsFolder, "sounds");
-
-            foreach(string file in Directory.GetFiles(path, "*", SearchOption.AllDirectories))
-            {
-                try
-                {
-                    SoundDefinition soundDefinition = JsonConvert.DeserializeObject<SoundDefinition>(File.ReadAllText(file));
-                    Registry.Register(GetRelativePath(file), soundDefinition.GetValue(this));
-                }
-                catch(JsonReaderException e)
-                {
-                    ThrowJsonError(file, e);
-                }
-                catch(Exception e)
-                {
-                    throw new Exception("Error in file: " + file + "\n" + e.Message);
-                }
-            }
-            Registry.Register("sounds/none", null);
-        }
-
-        private void RegisterAssetsFromFolder<T>(string folder)
+        private void RegisterAssetsFromFolder<T, V>(string folder) where T : IDefinition<V>
         {
             foreach(string file in Directory.GetFiles(folder, "*.json", SearchOption.AllDirectories))
             {
                 try
                 {
-                    Registry.Register(GetRelativePath(file), JsonConvert.DeserializeObject<T>(File.ReadAllText(file)));
+                    T def = JsonConvert.DeserializeObject<T>(File.ReadAllText(file));
+                    def.Init(this);
+                    Registry.Register(GetRelativePath(file), def);
                 }
                 catch(JsonReaderException e)
                 {
@@ -167,7 +144,7 @@ namespace ConsoleGame
             }
 
             Tiles = new Tile[Utils.GetLongestString(splitWorld).Length, splitWorld.Length];
-            Tiles.Populate(new Tile(' ', Tile.TileType.Empty));
+            Tiles.Populate(new Tile());
 
             //Loops through the text file
             for(int y = 0; y < splitWorld.Length; y++)
@@ -195,11 +172,11 @@ namespace ConsoleGame
                                 SetTile(x, y, tile);
                                 break;
                             default:
-                                SetTile(x, y, new Tile(' ', Tile.TileType.Empty));
+                                SetTile(x, y, new Tile());
                                 break;
                         }
                     }
-                    else SetTile(x, y, new Tile(' ', Tile.TileType.Empty));
+                    else SetTile(x, y, new Tile());
                 }
 
             }
@@ -215,7 +192,8 @@ namespace ConsoleGame
         {
             SoundDefinition definition = Registry.Get<SoundDefinition>(path);
             WaveBundle bundle = definition.GetValue(this);
-            AudioManager.Play(channel, definition.GetValue(this));
+            if(bundle == null) return;
+            AudioManager.Play(channel, bundle);
 
         }
 

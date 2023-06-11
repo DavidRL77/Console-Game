@@ -19,19 +19,21 @@ namespace ConsoleGame
         public char displayChar;
         public TileType tileType;
         public ConsoleColor tileColor;
+        public string material;
 
-        public Tile(char displayChar, TileType tileType, ConsoleColor tileColor)
+        public Tile(char displayChar, TileType tileType, ConsoleColor tileColor, string material)
         {
             this.displayChar = displayChar;
             this.tileType = tileType;
             this.tileColor = tileColor;
+            this.material = material;
         }
 
-        public Tile(char displayChar, TileType tileType) : this(displayChar, tileType, ConsoleColor.White)
+        public Tile(char displayChar, TileType tileType, string material) : this(displayChar, tileType, ConsoleColor.White, material)
         {
            
         }
 
-        public Tile() : this(' ', TileType.Empty, ConsoleColor.White) { }
+        public Tile() : this(' ', TileType.Empty, ConsoleColor.White, "") { }
     }
 }

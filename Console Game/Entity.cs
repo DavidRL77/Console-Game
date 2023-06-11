@@ -22,6 +22,8 @@ namespace ConsoleGame
 
         [JsonIgnore]
         protected Vector2 prevPos;
+        [JsonIgnore]
+        protected Tile currentTile;
 
         public char display = '#';
         public ConsoleColor color;
@@ -70,20 +72,13 @@ namespace ConsoleGame
 
         public virtual void Awake(Simulation simulation)
         {
-            foreach(Component component in components)
-            {
-                if(!component.enabled) continue;
-                component.Awake(simulation);
-            }
+            CallComponents(c => c.Awake(simulation));
         }
 
         public virtual void Simulate(Simulation simulation)
         {
-            foreach(Component component in components)
-            {
-                if(!component.enabled) continue;
-                component.Simulate(simulation);
-            }
+            currentTile = simulation.GetTile(position);
+            CallComponents(c => c.Simulate(simulation));
         }
 
         public virtual void Draw()
@@ -107,11 +102,7 @@ namespace ConsoleGame
             prevPos = position;
             Console.ForegroundColor = prevColor;
 
-            foreach(Component component in components)
-            {
-                if(!component.enabled) continue;
-                component.Draw();
-            }
+            CallComponents(c => c.Draw());
         }
 
         public T GetComponent<T>() where T : Component
@@ -164,6 +155,15 @@ namespace ConsoleGame
             }
 
             components.Add(instance);
+        }
+
+        private void CallComponents(Action<Component> method)
+        {
+            foreach(Component component in components)
+            {
+                if(!component.enabled) continue;
+                method?.Invoke(component);
+            }
         }
     }
 }

@@ -14,6 +14,7 @@ namespace ConsoleGame
 
         public Random rnd { get; private set; } = new Random();
         private bool running;
+        private bool won;
         private long lastTime = 0;
 
         public Simulation(WorldData worldData)
@@ -82,8 +83,6 @@ namespace ConsoleGame
 
             Draw();
             WindowUtility.MoveWindowToCenter();
-
-            #region Movement
             running = true;
             while(running)
             {
@@ -99,7 +98,8 @@ namespace ConsoleGame
                 Draw();
                 Time++;
             }
-            #endregion
+
+            if(won) WinScreen();
         }
 
         public void End()
@@ -109,10 +109,15 @@ namespace ConsoleGame
 
         public void Win()
         {
+            running = false;
+            won = true;
+        }
+
+        private void WinScreen()
+        {
             Console.Clear();
             Console.WriteLine("You win!");
             SuperConsole.ReadKeyInstant(true);
-            running = false;
         }
 
         public bool IsValidPosition(Vector2 pos)

@@ -1,9 +1,6 @@
-﻿using NAudio.Wave;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Threading;
 
 //The unicode for a full square is "\u2588"
 namespace ConsoleGame
@@ -18,56 +15,49 @@ namespace ConsoleGame
             SuperConsole.KeyActions.Add(ConsoleKey.Escape, EscPressed);
 
             //Setup
+            AdjustWindow();
             WindowUtility.DisableResize();
             Console.ForegroundColor = ConsoleColor.White;
             Directory.CreateDirectory(worldsDir);
-            DirectoryInfo dirInfo = new DirectoryInfo(worldsDir);
-            DirectoryInfo[] directories = dirInfo.GetDirectories();
-
-            if(directories.Length == 0)
-            {
-                Console.WriteLine("No worlds");
-                SuperConsole.ReadKey(true);
-                return;
-            }
-
+            
             bool exit = false;
             while(!exit)
             {
-                //Loads the worlds
-                string errorMessage = "";
-                List<WorldData> worlds = new List<WorldData>();
-                foreach(DirectoryInfo dir in directories)
-                {
-                    try
-                    {
-                        worlds.Add(new WorldData(dir.FullName));
-                    }
-                    catch(Exception e)
-                    {
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        Console.WriteLine(e.Message);
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.ReadLine();
-                    }
 
+                DirectoryInfo dirInfo = new DirectoryInfo(worldsDir);
+                DirectoryInfo[] directories = dirInfo.GetDirectories();
+
+                if(directories.Length == 0)
+                {
+                    Console.WriteLine("No worlds");
+                    SuperConsole.ReadKey(true);
+                    return;
                 }
 
                 currentSimulation = null;
 
-                //Adjusts window
-                Console.CursorVisible = true;
-                Console.WindowTop = 0;
-                Console.SetWindowSize(120, 30);
-                Console.SetBufferSize(Console.WindowWidth, Console.WindowHeight);
-                WindowUtility.MoveWindowToCenter();
+                AdjustWindow();
 
                 Console.Clear();
 
-                WorldData world = GetUserChoice(worlds.ToArray(), "Choose a world");
-                currentSimulation = new Simulation(world);
+                DirectoryInfo worldDir = GetUserChoice(directories, d => d.Name, "Choose a world");
+
+                Console.Clear();
+                Console.WriteLine("Loading...");
+                WorldData worldData = new WorldData(worldDir.FullName);
+                currentSimulation = new Simulation(worldData);
                 currentSimulation.Run();
+                worldData.Dispose();
             }
+        }
+
+        private static void AdjustWindow()
+        {
+            Console.CursorVisible = true;
+            Console.WindowTop = 0;
+            Console.SetWindowSize(120, 30);
+            Console.SetBufferSize(Console.WindowWidth, Console.WindowHeight);
+            WindowUtility.MoveWindowToCenter();
         }
 
         private static void EscPressed(ConsoleKey key)
@@ -76,7 +66,7 @@ namespace ConsoleGame
             else Environment.Exit(0);
         }
 
-        private static T GetUserChoice<T>(T[] values, string topMessage = "Choose an option:")
+        public static T GetUserChoice<T>(T[] values, Func<T, string> toString, string topMessage = "Choose an option:")
         {
             bool chose = false;
             string errorMessage = "";
@@ -88,7 +78,7 @@ namespace ConsoleGame
                 int i = 0;
                 foreach(T value in values)
                 {
-                    Console.WriteLine(i + ".- " + value.ToString());
+                    Console.WriteLine(i + ".- " + toString.Invoke(value));
                     i++;
                 }
 
@@ -120,6 +110,11 @@ namespace ConsoleGame
                 else errorMessage = "Please enter a number";
             }
             return default(T);
+        }
+
+        public static T GetUserChoice<T>(T[] values, string topMessage = "Choose an option:")
+        {
+            return GetUserChoice(values, v => v.ToString(), topMessage);
         }
     }
 }
